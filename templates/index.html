@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Classifier: Real or AI-Generated?</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .upload-area:hover {
+            background-color: #ecf0f1;
+        }
+        #file-input {
+            display: none;
+        }
+        #preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+        .button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        .prediction {
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .prediction h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        #error-message {
+            color: #e74c3c;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Face Classifier: Real or AI-Generated</h1>
+        <form id="upload-form" enctype="multipart/form-data">
+            <div id="upload-area" class="upload-area">
+                <p>Click here or drag and drop an image</p>
+                <input type="file" id="file-input" name="file" accept="image/*">
+            </div>
+            <img id="preview-image" style="display: none;" alt="Preview">
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="button" id="clear-button" class="button" style="display: none;">Clear</button>
+                <button type="submit" id="submit-button" class="button" disabled>Classify Image</button>
+            </div>
+        </form>
+        <div id="results"></div>
+        <p id="error-message"></p>
+    </div>
+
+    <script>
+        const uploadForm = document.getElementById('upload-form');
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const previewImage = document.getElementById('preview-image');
+        const clearButton = document.getElementById('clear-button');
+        const submitButton = document.getElementById('submit-button');
+        const resultsDiv = document.getElementById('results');
+        const errorMessage = document.getElementById('error-message');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => e.preventDefault());
+        uploadArea.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+        clearButton.addEventListener('click', clearImage);
+        uploadForm.addEventListener('submit', classifyImage);
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                fileInput.files = e.dataTransfer.files;
+                displayImage(file);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                displayImage(file);
+            }
+        }
+
+        function displayImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+                clearButton.style.display = 'inline-block';
+                submitButton.disabled = false;
+                uploadArea.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearImage() {
+            uploadForm.reset();
+            previewImage.src = '';
+            previewImage.style.display = 'none';
+            clearButton.style.display = 'none';
+            submitButton.disabled = true;
+            uploadArea.style.display = 'block';
+            resultsDiv.innerHTML = '';
+            errorMessage.textContent = '';
+        }
+
+        function classifyImage(e) {
+            e.preventDefault();
+            submitButton.disabled = true;
+            submitButton.textContent = 'Classifying...';
+            resultsDiv.innerHTML = '';
+            errorMessage.textContent = '';
+
+            const formData = new FormData(uploadForm);
+
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Classification failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                displayResults(data);
+            })
+            .catch(error => {
+                errorMessage.textContent = 'An error occurred. Please try again.';
+                console.error('Error:', error);
+            })
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Classify Image';
+            });
+        }
+
+        function displayResults(data) {
+            const models = ['ResNet', 'Inception'];
+            models.forEach((model, index) => {
+                const result = data[`model${index + 1}`];
+                const predictionDiv = document.createElement('div');
+                predictionDiv.className = 'prediction';
+                predictionDiv.innerHTML = `
+                    <h3>${model} Model Prediction</h3>
+                    <p>Result: ${result.result}</p>
+                    <p>Confidence: ${(result.confidence * 100).toFixed(2)}%</p>
+                `;
+                resultsDiv.appendChild(predictionDiv);
+            });
+        }
+    </script>
+</body>
+</html>

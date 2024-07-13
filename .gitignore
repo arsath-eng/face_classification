@@ -1,0 +1,12 @@
+# Python virtual environment
+face/
+
+# Specific large files
+**/libclang.dll
+**/_pywrap_tensorflow_internal.pyd
+
+# Common Python ignores
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
