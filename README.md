@@ -115,13 +115,19 @@ Visit `http://localhost:5000` in your web browser to access the application.
    - Hyperparameter optimization
    - Advanced data augmentation techniques
 
+## 🔗 Dataset
+- [dataset about real-fake human face classification](https://drive.google.com/file/d/16y2xEwwuf1v_W0BUDv1thzpNu_dnaJZ1/view?usp=sharing)
+
 ## 👥 Contributors
 - Arsath S.M
 - Faahiht K.R.M
 - Arafath M.S.M
 
 ## 📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+This project is licensed under the [MIT License](LICENSE) - see the [LICENSE](LICENSE) file for details.
 
 ---
 <p align="center">
